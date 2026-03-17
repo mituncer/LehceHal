@@ -176,6 +176,38 @@ footer{text-align:center;padding:18px;font-family:'JetBrains Mono',monospace;fon
   .ai-input-row{flex-direction:column;}
   .ai-submit{width:100%;justify-content:center;}
 }
+
+/* ── API KEY MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;z-index:1000;background:rgba(4,6,14,0.85);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.show{display:flex;}
+.modal{background:var(--s1);border:1px solid var(--border);border-radius:16px;width:100%;max-width:480px;overflow:hidden;animation:slideUp .3s cubic-bezier(0.4,0,0.2,1);}
+.modal-top{padding:26px 26px 20px;border-bottom:1px solid var(--border);}
+.modal-icon{font-size:1.8rem;margin-bottom:10px;}
+.modal-title{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;color:var(--text);margin-bottom:5px;}
+.modal-desc{font-size:0.8rem;color:var(--muted);line-height:1.6;}
+.modal-desc a{color:var(--mian);text-decoration:none;border-bottom:1px solid rgba(91,142,255,0.35);}
+.modal-desc a:hover{border-color:var(--mian);}
+.modal-steps{padding:16px 26px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:10px;}
+.modal-step{display:flex;align-items:flex-start;gap:11px;font-size:0.8rem;color:var(--muted);line-height:1.5;}
+.step-num{width:20px;height:20px;border-radius:50%;background:rgba(91,142,255,0.1);border:1px solid rgba(91,142,255,0.3);color:var(--mian);font-family:'JetBrains Mono',monospace;font-size:0.65rem;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.step-text{flex:1;}
+.step-text a{color:var(--mian);text-decoration:none;border-bottom:1px solid rgba(91,142,255,0.3);}
+.step-text strong{color:var(--text);font-weight:600;}
+.modal-input-section{padding:16px 26px 20px;}
+.modal-input-label{font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+.modal-key-wrap{display:flex;gap:8px;align-items:center;}
+.modal-key-input{flex:1;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.8rem;padding:9px 12px;outline:none;transition:border-color .2s;}
+.modal-key-input:focus{border-color:var(--mian);}
+.modal-key-input::placeholder{color:var(--dimmed);}
+.modal-save-btn{background:var(--mian);border:none;border-radius:8px;color:#030810;font-family:'Syne',sans-serif;font-weight:700;font-size:0.8rem;padding:9px 16px;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.modal-save-btn:hover{background:#7aa8ff;}
+.modal-note{margin-top:9px;font-size:0.7rem;color:var(--dimmed);line-height:1.5;}
+.modal-note strong{color:var(--muted);}
+.modal-cancel{display:block;width:100%;padding:11px;text-align:center;border:none;border-top:1px solid var(--border);background:transparent;color:var(--dimmed);font-family:'Mulish',sans-serif;font-size:0.76rem;cursor:pointer;transition:color .2s;}
+.modal-cancel:hover{color:var(--muted);}
+.key-status{display:inline-flex;align-items:center;gap:4px;font-family:'JetBrains Mono',monospace;font-size:0.58rem;padding:2px 7px;border-radius:10px;cursor:pointer;transition:all .2s;margin-left:6px;}
+.key-status.set{background:rgba(63,255,196,0.1);border:1px solid rgba(63,255,196,0.22);color:var(--ok);}
+.key-status.unset{background:rgba(255,212,77,0.1);border:1px solid rgba(255,212,77,0.22);color:var(--dopel);}
 </style>
 </head>
 <body>
@@ -215,7 +247,45 @@ footer{text-align:center;padding:18px;font-family:'JetBrains Mono',monospace;fon
       </div>
     </div>
   </main>
-  <footer>elevatethinking.org · Polonca Hal Seçimi + AI Kontrol</footer>
+  
+<!-- ── API KEY MODAL ── -->
+<div class="modal-overlay" id="keyModal">
+  <div class="modal">
+    <div class="modal-top">
+      <div class="modal-icon">🔑</div>
+      <div class="modal-title">AI Kontrol — API Key Gerekiyor</div>
+      <div class="modal-desc">Bu özellik Anthropic'in AI modelini kullanıyor. Ücretsiz kayıt açabilir, küçük kullanımlar için birkaç sent/ay maliyetiyle kendi key'ini alabilirsin.</div>
+    </div>
+    <div class="modal-steps">
+      <div class="modal-step">
+        <span class="step-num">1</span>
+        <span class="step-text"><a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> adresine git ve hesap aç</span>
+      </div>
+      <div class="modal-step">
+        <span class="step-num">2</span>
+        <span class="step-text"><strong>API Keys</strong> menüsünden <strong>"Create Key"</strong> butonuna tıkla</span>
+      </div>
+      <div class="modal-step">
+        <span class="step-num">3</span>
+        <span class="step-text">Oluşan <strong>sk-ant-...</strong> ile başlayan key'i kopyala ve aşağıya yapıştır</span>
+      </div>
+    </div>
+    <div class="modal-input-section">
+      <div class="modal-input-label">Anthropic API Key</div>
+      <div class="modal-key-wrap">
+        <input class="modal-key-input" id="keyInput" type="password" placeholder="sk-ant-api03-..." autocomplete="off"/>
+        <button class="modal-save-btn" onclick="saveKey()">Kaydet</button>
+      </div>
+      <div class="modal-note">
+        🔒 Key yalnızca tarayıcında saklanır (localStorage) — hiçbir sunucuya gönderilmez.<br>
+        <strong>Maliyet:</strong> Claude Sonnet kullanımı yaklaşık $0.003 / kontrol.
+      </div>
+    </div>
+    <button class="modal-cancel" onclick="closeModal()">Şimdi değil</button>
+  </div>
+</div>
+
+<footer>elevatethinking.org · Polonca Hal Seçimi + AI Kontrol</footer>
 </div>
 
 <script>
@@ -292,7 +362,7 @@ function renderR(n,w){
       <div class="ai-checker-head">
         <span class="ai-badge">✦ AI</span>
         <div class="ai-head-text">
-          <div class="ai-checker-title">Kendi cümleni yaz, AI kontrol etsin</div>
+          <div class="ai-checker-title">Kendi cümleni yaz, AI kontrol etsin <span class="key-status" id="keyBadge" onclick="openModal()"></span></div>
           <div class="ai-checker-sub">${n.case} halini kullanarak bir cümle yaz — doğru mu yanlış mı anında görürsün.</div>
         </div>
       </div>
@@ -319,8 +389,47 @@ function renderR(n,w){
   </div>`;
 }
 
+// ── API KEY MANAGEMENT ───────────────────────────────────────────────────────
+function getKey(){return localStorage.getItem('anthropic_key')||'';}
+function saveKey(){
+  const v=document.getElementById('keyInput').value.trim();
+  if(!v.startsWith('sk-')){
+    document.getElementById('keyInput').style.borderColor='var(--err)';
+    setTimeout(()=>document.getElementById('keyInput').style.borderColor='',1500);
+    return;
+  }
+  localStorage.setItem('anthropic_key',v);
+  closeModal();
+  updateKeyBadge();
+  // retry pending check if any
+  if(window._pendingCheck){const p=window._pendingCheck;window._pendingCheck=null;aiCheck(p.nk,p.cn);}
+}
+function openModal(){
+  document.getElementById('keyInput').value=getKey();
+  document.getElementById('keyModal').classList.add('show');
+  setTimeout(()=>document.getElementById('keyInput').focus(),100);
+}
+function closeModal(){document.getElementById('keyModal').classList.remove('show');}
+function updateKeyBadge(){
+  const b=document.getElementById('keyBadge');
+  if(!b)return;
+  if(getKey()){b.className='key-status set';b.textContent='● Key ayarlı';}
+  else{b.className='key-status unset';b.textContent='⚠ Key gerekli';}
+}
+// Close modal on overlay click
+document.addEventListener('click',e=>{if(e.target.id==='keyModal')closeModal();});
+// Close on Escape
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
 // ── AI CHECK ─────────────────────────────────────────────────────────────────
 async function aiCheck(nk, caseName){
+  const key=getKey();
+  if(!key){
+    window._pendingCheck={nk,cn:caseName};
+    openModal();
+    return;
+  }
+
   const inp=document.getElementById(`inp_${nk}`);
   const btn=document.getElementById(`btn_${nk}`);
   const bsp=document.getElementById(`bsp_${nk}`);
@@ -341,9 +450,21 @@ YALNIZCA şu JSON formatında yanıt ver, başka hiçbir şey ekleme:
   try{
     const r=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,system:sys,messages:[{role:'user',content:`Analiz et: "${txt}"`}]})
     });
+    if(r.status===401){
+      localStorage.removeItem('anthropic_key');
+      updateKeyBadge();
+      res.className='ai-result incorrect show';
+      res.innerHTML='<div class="ai-verdict"><span class="verdict-icon">🔑</span><span class="verdict-text">Geçersiz API Key</span></div><div class="ai-explanation">Key hatalı veya süresi dolmuş. Lütfen yeni bir key gir.</div>';
+      btn.disabled=false; bsp.innerHTML='Kontrol Et →'; return;
+    }
     const d=await r.json();
     const raw=(d.content?.[0]?.text||'').replace(/```json|```/g,'').trim();
     let p;
@@ -353,7 +474,7 @@ YALNIZCA şu JSON formatında yanıt ver, başka hiçbir şey ekleme:
     hnt.className='ai-try-hint show';
   }catch(e){
     res.className='ai-result info show';
-    res.innerHTML='<div class="ai-verdict"><span class="verdict-icon">⚠️</span><span class="verdict-text">Bağlantı hatası</span></div><div class="ai-explanation">API\'ye ulaşılamadı.</div>';
+    res.innerHTML='<div class="ai-verdict"><span class="verdict-icon">⚠️</span><span class="verdict-text">Bağlantı hatası</span></div><div class="ai-explanation">Sunucuya ulaşılamadı. İnternet bağlantını kontrol et.</div>';
   }
   btn.disabled=false; bsp.innerHTML='Kontrol Et →';
 }
@@ -394,6 +515,7 @@ function toggleRef(){
 }
 
 render();
+updateKeyBadge();
 </script>
 </body>
 </html>
