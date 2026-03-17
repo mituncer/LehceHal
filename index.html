@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Polonca Hal — Karar Uygulaması</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Mulish:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #080a10;
+  --s1:      #0d1020;
+  --s2:      #121628;
+  --s3:      #1a1f35;
+  --border:  #1e2540;
+  --text:    #dde3f8;
+  --muted:   #6b7599;
+  --dimmed:  #3a4268;
+  --mian:    #5b8eff; --mian-bg:   #060d1f;
+  --bier:    #ff7c4d; --bier-bg:   #150a04;
+  --narze:   #3fffc4; --narze-bg:  #031510;
+  --dopel:   #ffd44d; --dopel-bg:  #151000;
+  --miej:    #c97dff; --miej-bg:   #0e0515;
+  --celown:  #ff5f9e; --celown-bg: #15030a;
+  --ok:      #3fffc4; --ok-bg:     #031510;
+  --err:     #ff5f5f; --err-bg:    #150606;
+  --radius: 14px;
+  --transition: 0.28s cubic-bezier(0.4,0,0.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Mulish',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 50% at 20% 10%,rgba(91,142,255,0.07) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 80% 80%,rgba(201,125,255,0.06) 0%,transparent 60%);pointer-events:none;z-index:0;}
+.app{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;}
+
+header{padding:22px 32px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.logo-title{font-family:'Syne',sans-serif;font-size:1.25rem;font-weight:800;letter-spacing:-0.02em;}
+.logo-title span{color:var(--mian);font-style:italic;}
+.logo-sub{font-size:0.7rem;color:var(--muted);margin-top:2px;}
+.case-pills{display:flex;flex-wrap:wrap;gap:5px;}
+.pill{padding:3px 9px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:0.58rem;font-weight:600;letter-spacing:0.05em;border:1px solid;opacity:0.7;transition:opacity .2s;}
+.pill:hover{opacity:1;}
+.pill.mian{color:var(--mian);border-color:var(--mian);background:var(--mian-bg);}
+.pill.bier{color:var(--bier);border-color:var(--bier);background:var(--bier-bg);}
+.pill.narze{color:var(--narze);border-color:var(--narze);background:var(--narze-bg);}
+.pill.dopel{color:var(--dopel);border-color:var(--dopel);background:var(--dopel-bg);}
+.pill.miej{color:var(--miej);border-color:var(--miej);background:var(--miej-bg);}
+.pill.celown{color:var(--celown);border-color:var(--celown);background:var(--celown-bg);}
+
+.progress-wrap{height:3px;background:var(--s2);}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--mian),var(--miej));transition:width .5s ease;width:0%;}
+
+main{flex:1;display:flex;flex-direction:column;align-items:center;padding:32px 20px 60px;}
+
+.breadcrumb{display:flex;flex-wrap:wrap;align-items:center;gap:4px;width:100%;max-width:700px;min-height:26px;margin-bottom:24px;font-family:'JetBrains Mono',monospace;font-size:0.66rem;}
+.bc-item{color:var(--dimmed);cursor:pointer;padding:2px 6px;border-radius:4px;transition:color .15s,background .15s;}
+.bc-item:hover{color:var(--mian);background:rgba(91,142,255,0.08);}
+.bc-item.active{color:var(--muted);cursor:default;}
+.bc-sep{color:var(--border);user-select:none;}
+
+.card{width:100%;max-width:700px;background:var(--s1);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;position:relative;animation:slideUp .3s cubic-bezier(0.4,0,0.2,1);}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--mian),var(--miej));opacity:0.35;}
+@keyframes slideUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+
+.q-header{padding:24px 26px 16px;border-bottom:1px solid var(--border);}
+.q-step{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:9px;}
+.q-text{font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:700;line-height:1.3;}
+.q-hint{margin-top:5px;font-size:0.78rem;color:var(--muted);line-height:1.5;font-weight:300;}
+.q-options{padding:16px 26px 24px;display:flex;flex-direction:column;gap:8px;}
+
+.opt-btn{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;cursor:pointer;text-align:left;transition:all var(--transition);display:flex;align-items:flex-start;gap:12px;position:relative;overflow:hidden;}
+.opt-btn::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent-color,var(--mian));opacity:0;transition:opacity var(--transition);}
+.opt-btn:hover{border-color:var(--accent-color,var(--mian));background:var(--s3);transform:translateX(4px);}
+.opt-btn:hover::before{opacity:1;}
+.opt-btn:active{transform:translateX(2px) scale(0.99);}
+.opt-icon{font-size:1rem;line-height:1;margin-top:2px;flex-shrink:0;}
+.opt-body{flex:1;min-width:0;}
+.opt-label{font-family:'Syne',sans-serif;font-size:0.9rem;font-weight:600;color:var(--text);line-height:1.3;}
+.opt-sub{font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--muted);margin-top:3px;line-height:1.4;}
+.opt-arrow{color:var(--dimmed);font-size:0.78rem;margin-top:3px;flex-shrink:0;transition:transform var(--transition),color var(--transition);}
+.opt-btn:hover .opt-arrow{transform:translateX(3px);color:var(--accent-color,var(--mian));}
+
+.result-top{padding:26px 26px 20px;border-bottom:1px solid var(--border);}
+.result-badge{display:inline-flex;align-items:center;gap:7px;padding:4px 12px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:0.7rem;font-weight:600;letter-spacing:.06em;border:1.5px solid;margin-bottom:12px;}
+.result-name{font-family:'Syne',sans-serif;font-size:1.85rem;font-weight:800;letter-spacing:-0.03em;line-height:1;margin-bottom:4px;}
+.result-polish{font-family:'JetBrains Mono',monospace;font-size:0.73rem;color:var(--muted);}
+
+.result-why{margin:16px 26px 0;background:var(--s2);border-radius:10px;padding:13px 16px;font-size:0.84rem;line-height:1.65;color:var(--text);border-left:3px solid;}
+.result-why strong{font-weight:600;}
+
+.result-examples{padding:16px 26px 0;display:flex;flex-direction:column;gap:8px;}
+.ex-pair{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.ex-box{background:var(--s2);border-radius:8px;padding:9px 12px;}
+.ex-lang{font-family:'JetBrains Mono',monospace;font-size:0.57rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dimmed);margin-bottom:4px;}
+.ex-text{font-family:'JetBrains Mono',monospace;font-size:0.79rem;line-height:1.4;}
+.ex-box.pl .ex-text{color:var(--narze);}
+.ex-box.tr .ex-text{color:var(--dopel);}
+.ex-box.note{grid-column:1/-1;}
+.ex-box.note .ex-text{color:var(--muted);font-size:0.73rem;}
+
+.suffix-row{margin:13px 26px 0;display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--s2);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.72rem;}
+.suffix-label{color:var(--muted);flex-shrink:0;font-size:0.6rem;text-transform:uppercase;letter-spacing:.08em;}
+
+/* ── AI CHECKER ──────────────────────────────────── */
+.ai-checker{margin:18px 26px 0;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--s2);}
+.ai-checker-head{padding:12px 17px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;}
+.ai-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(91,142,255,0.1);border:1px solid rgba(91,142,255,0.3);color:var(--mian);border-radius:6px;padding:2px 8px;font-family:'JetBrains Mono',monospace;font-size:0.6rem;font-weight:600;letter-spacing:.06em;flex-shrink:0;margin-top:2px;}
+.ai-head-text{}
+.ai-checker-title{font-size:0.86rem;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px;}
+.ai-checker-sub{font-size:0.73rem;color:var(--muted);margin-top:2px;line-height:1.45;}
+
+.ai-input-row{padding:13px 17px;display:flex;gap:9px;align-items:flex-end;}
+.ai-input-wrap{flex:1;}
+.ai-input-label{font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;}
+.ai-textarea{width:100%;background:var(--s1);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.83rem;padding:9px 12px;resize:none;outline:none;line-height:1.5;transition:border-color .2s;min-height:56px;}
+.ai-textarea:focus{border-color:var(--mian);}
+.ai-textarea::placeholder{color:var(--dimmed);}
+.ai-submit{background:var(--mian);border:none;border-radius:8px;color:#030810;font-family:'Syne',sans-serif;font-weight:700;font-size:0.8rem;padding:9px 16px;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px;}
+.ai-submit:hover{background:#7aa8ff;transform:translateY(-1px);}
+.ai-submit:active{transform:translateY(0);}
+.ai-submit:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+.spinner{width:13px;height:13px;border:2px solid rgba(3,8,16,0.3);border-top-color:#030810;border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.ai-result{margin:0 17px 15px;border-radius:10px;padding:14px 16px;display:none;animation:fadeIn .3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
+.ai-result.show{display:block;}
+.ai-result.correct{background:var(--ok-bg);border:1px solid rgba(63,255,196,0.22);}
+.ai-result.incorrect{background:var(--err-bg);border:1px solid rgba(255,95,95,0.22);}
+.ai-result.partial{background:#110d00;border:1px solid rgba(255,212,77,0.22);}
+.ai-result.info{background:var(--s1);border:1px solid var(--border);}
+
+.ai-verdict{display:flex;align-items:center;gap:8px;font-family:'Syne',sans-serif;font-size:0.92rem;font-weight:700;margin-bottom:9px;}
+.verdict-icon{font-size:1rem;}
+.ai-result.correct .verdict-text{color:var(--ok);}
+.ai-result.incorrect .verdict-text{color:var(--err);}
+.ai-result.partial .verdict-text{color:var(--dopel);}
+.ai-result.info .verdict-text{color:var(--muted);}
+
+.ai-explanation{font-size:0.82rem;line-height:1.7;color:var(--text);}
+.ai-correction{margin-top:11px;padding:9px 12px;background:var(--s2);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.78rem;border-left:2px solid var(--ok);}
+.ai-correction-label{font-size:0.58rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dimmed);margin-bottom:3px;}
+.ai-correction-text{color:var(--ok);}
+
+/* Try another hint */
+.ai-try-hint{padding:0 17px 14px;font-size:0.72rem;color:var(--dimmed);font-family:'JetBrains Mono',monospace;display:none;}
+.ai-try-hint.show{display:block;}
+
+.card-footer{padding:16px 26px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:6px;}
+.btn-restart,.btn-back{display:flex;align-items:center;gap:6px;background:transparent;border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:20px;cursor:pointer;font-family:'Mulish',sans-serif;font-size:0.78rem;transition:all .2s;}
+.btn-restart:hover{border-color:var(--mian);color:var(--mian);}
+.btn-back:hover{border-color:var(--dimmed);color:var(--text);}
+
+.ref-section{width:100%;max-width:700px;margin-top:32px;}
+.ref-toggle{width:100%;background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:12px 18px;color:var(--muted);font-family:'Mulish',sans-serif;font-size:0.8rem;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between;transition:all .2s;}
+.ref-toggle:hover{color:var(--text);border-color:var(--dimmed);}
+.ref-toggle .arr{transition:transform .25s;}
+.ref-toggle.open .arr{transform:rotate(180deg);}
+.ref-body{display:none;background:var(--s1);border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;overflow:hidden;}
+.ref-body.open{display:block;}
+.ref-row{display:grid;grid-template-columns:118px 78px 1fr;gap:10px;align-items:center;padding:9px 18px;border-bottom:1px solid var(--border);font-size:0.76rem;}
+.ref-row:last-child{border-bottom:none;}
+.ref-hal{font-family:'JetBrains Mono',monospace;font-size:0.66rem;font-weight:600;padding:2px 7px;border-radius:6px;border:1px solid;text-align:center;}
+.ref-soru{font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--text);}
+.ref-tetik{color:var(--muted);font-size:0.74rem;line-height:1.4;}
+
+footer{text-align:center;padding:18px;font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--dimmed);border-top:1px solid var(--border);letter-spacing:.05em;}
+
+@media(max-width:520px){
+  header{padding:16px;}
+  .case-pills{display:none;}
+  main{padding:20px 12px 48px;}
+  .q-header,.q-options,.result-top,.result-examples,.card-footer{padding-left:16px;padding-right:16px;}
+  .result-why,.suffix-row,.ai-checker{margin-left:16px;margin-right:16px;}
+  .q-text{font-size:1rem;}
+  .result-name{font-size:1.5rem;}
+  .ex-pair{grid-template-columns:1fr;}
+  .ai-input-row{flex-direction:column;}
+  .ai-submit{width:100%;justify-content:center;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">
+      <div class="logo-title">Polonca <span>Hal</span> Seçimi</div>
+      <div class="logo-sub">İsim ve sıfatın hangi halde kullanılacağına karar ver</div>
+    </div>
+    <div class="case-pills">
+      <span class="pill mian">Mianownik</span>
+      <span class="pill bier">Biernik</span>
+      <span class="pill narze">Narzędnik</span>
+      <span class="pill dopel">Dopełniacz</span>
+      <span class="pill miej">Miejscownik</span>
+      <span class="pill celown">Celownik</span>
+    </div>
+  </header>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+  <main>
+    <div class="breadcrumb" id="breadcrumb"></div>
+    <div id="cardWrap"></div>
+
+    <div class="ref-section">
+      <button class="ref-toggle" id="refToggle" onclick="toggleRef()">
+        <span>📋 Hızlı Referans — Tüm Haller</span>
+        <span class="arr">▾</span>
+      </button>
+      <div class="ref-body" id="refBody">
+        <div class="ref-row"><span class="ref-hal" style="color:var(--mian);border-color:var(--mian);background:var(--mian-bg)">MİANOWNİK</span><span class="ref-soru">Kto? Co?</span><span class="ref-tetik">Özne — fiili gerçekleştiren kişi/nesne</span></div>
+        <div class="ref-row"><span class="ref-hal" style="color:var(--bier);border-color:var(--bier);background:var(--bier-bg)">BİERNİK</span><span class="ref-soru">Kogo? Co?</span><span class="ref-tetik">Olumlu geçişli fiil nesnesi · mieć, lubić, widzieć</span></div>
+        <div class="ref-row"><span class="ref-hal" style="color:var(--narze);border-color:var(--narze);background:var(--narze-bg)">NARZĘDNIK</span><span class="ref-soru">Kim? Czym?</span><span class="ref-tetik">być/zostać yüklemi · z, przed, pod, nad, za</span></div>
+        <div class="ref-row"><span class="ref-hal" style="color:var(--dopel);border-color:var(--dopel);background:var(--dopel-bg)">DOPEŁNİACZ</span><span class="ref-soru">Kogo? Czego?</span><span class="ref-tetik">Olumsuz nesne · do, od, bez, dla · dużo/mało</span></div>
+        <div class="ref-row"><span class="ref-hal" style="color:var(--miej);border-color:var(--miej);background:var(--miej-bg)">MİEJSCOWNİK</span><span class="ref-soru">Gdzie? O kim?</span><span class="ref-tetik">Sadece edat ile: w, na, po, przy, o</span></div>
+        <div class="ref-row"><span class="ref-hal" style="color:var(--celown);border-color:var(--celown);background:var(--celown-bg)">CELOWNİK</span><span class="ref-soru">Komu? Czemu?</span><span class="ref-tetik">dawać, pomagać, mówić, dziękować, podobać się</span></div>
+      </div>
+    </div>
+  </main>
+  <footer>elevatethinking.org · Polonca Hal Seçimi + AI Kontrol</footer>
+</div>
+
+<script>
+const TREE = {
+  start:{type:'question',step:'Adım 1 / Cümledeki Rol',text:'Bu kelime cümlede ne görevi yapıyor?',hint:'Yazmak istediğin isim veya sıfatın cümle içindeki işlevine bak.',options:[
+    {icon:'📌',label:'Özne',sub:'Kto? Co? — fiili yapan kişi/nesne\nPies biega. / Ona jest miła.',accent:'mian',next:'result_mian'},
+    {icon:'🎯',label:'Doğrudan Nesne',sub:'Kogo? Co? — eylemi alan şey\nCzytam książkę. / Mam psa.',accent:'bier',next:'q_nesne'},
+    {icon:'📍',label:'Edat ile kullanılıyor',sub:'w, na, do, z, przed, bez...\nJestem w domu. / Idę do szkoły.',accent:'miej',next:'q_edat'},
+    {icon:'🔄',label:'Yüklem kimliği / meslek',sub:'być, zostać, stać się sonrası\nJestem studentem. / Zostałem dyrektorem.',accent:'narze',next:'result_narze_yuk'},
+    {icon:'🔺',label:'Kime / Yönelme',sub:'Komu? Czemu? — veren, yardım eden\nDaję mamie. / Pomagam bratu.',accent:'celown',next:'result_celown'},
+    {icon:'📦',label:'Sahiplik / Miktar / Menşe',sub:'Kimin? / dużo, mało, trochę\nTo jest dom mamy. / Dużo wody.',accent:'dopel',next:'result_dopel_sah'},
+  ]},
+  q_nesne:{type:'question',step:'Adım 2 / Olumsuzluk',text:'Cümle olumsuz mu?',hint:'Fiilden önce "nie" var mı?',options:[
+    {icon:'❌',label:'Evet — nie + fiil',sub:'Nie lubię... / Nie mam... / Nie widzę...',accent:'dopel',next:'result_dopel_neg'},
+    {icon:'✅',label:'Hayır — olumlu cümle',sub:'Lubię... / Czytam... / Kupuję...',accent:'bier',next:'q_fiil'},
+  ]},
+  q_fiil:{type:'question',step:'Adım 3 / Fiil',text:'Cümledeki fiil hangisi?',hint:'Fiilin aldığı nesneyi belirlemek için türünü seç.',options:[
+    {icon:'📖',label:'Geçişli fiil',sub:'mieć, lubić, widzieć, czytać, pisać, kupić, jeść, znać...',accent:'bier',next:'result_biernik'},
+    {icon:'🔍',label:'Arama / ihtiyaç / dinleme',sub:'szukać, potrzebować, używać, słuchać, uczyć się...',accent:'dopel',next:'result_dopel_fiil'},
+  ]},
+  q_edat:{type:'question',step:'Adım 2 / Edat',text:'Kullanılan edat hangisi?',hint:'Edatı seç — her edat belirli bir hal gerektirir.',options:[
+    {icon:'📍',label:'w, na, po, przy, o',sub:'w domu · na stole · po pracy · przy oknie · o pracy',accent:'miej',next:'result_miej'},
+    {icon:'🔧',label:'z, ze, przed, pod, nad, za, między',sub:'z bratem · przed domem · nad rzeką · za szkołą',accent:'narze',next:'result_narze_edat'},
+    {icon:'📦',label:'do, od, bez, dla, koło, według',sub:'do szkoły · od mamy · bez cukru · dla dzieci',accent:'dopel',next:'result_dopel_edat'},
+    {icon:'➡️',label:'przez, za (süre), na (hedef/süre)',sub:'przez most · za godzinę · na tydzień',accent:'bier',next:'result_bier_edat'},
+  ]},
+
+  result_mian:       {type:'result',case:'MİANOWNİK', accent:'mian',  polish:'Yalın Hal — Kto? Co?',                       soru:'Kto? Co?',   suffix:'eril:-Ø/-a  |  dişil:-a/-Ø  |  tarafsız:-o/-e  |  sıfat:-y/-i/-a',              why:'Cümlede <strong>özne</strong> her zaman Mianownik\'tedir. Fiili gerçekleştiren, yüklemi taşıyan kişi veya nesne bu haldedir.',         examples:[['Pies biega w parku.','Köpek parkta koşuyor.'],['To jest stary dom.','Bu eski bir ev.'],['Ona jest bardzo miła.','O çok hoş biri.']]},
+  result_biernik:    {type:'result',case:'BİERNİK',    accent:'bier',  polish:'Belirtme Hali — Kogo? Co?',                  soru:'Kogo? Co?',  suffix:'eril canlı:-a  |  eril cansız:-Ø  |  dişil:-ę  |  tarafsız:-Ø',                why:'Olumlu geçişli fiillerin doğrudan nesnesi <strong>Biernik</strong> alır. Dişil isimler <strong>-ę</strong> alır, eril cansız isimler değişmez.', examples:[['Lubię kawę.','Kahveyi seviyorum.'],['Czytam książkę.','Kitap okuyorum.'],['Mam nowego psa.','Yeni köpeğim var.']]},
+  result_dopel_neg:  {type:'result',case:'DOPEŁNİACZ', accent:'dopel', polish:'İyelik Hali — Olumsuz Nesne',                soru:'Kogo? Czego?',suffix:'eril/tarafsız:-u/-a  |  dişil:-y/-i  |  kawa→kawy, czas→czasu',             why:'<strong>Olumsuz cümlelerde (nie + fiil) nesne Biernik yerine Dopełniacz olur.</strong> Bu Polonca\'nın temel kurallarından biridir.',  examples:[['Nie lubię kawy.','Kahveyi sevmiyorum.'],['Nie mam czasu.','Zamanım yok.'],['Nie znam jej.','Onu tanımıyorum.']], note:'Karşılaştır: Mam kawę (Biernik) → Nie mam kawy (Dopełniacz)'},
+  result_dopel_fiil: {type:'result',case:'DOPEŁNİACZ', accent:'dopel', polish:'Bazı Fiiller Dopełniacz Gerektirir',         soru:'Kogo? Czego?',suffix:'eril/tarafsız:-u/-a  |  dişil:-y/-i  |  klucz→klucza',                    why:'<strong>szukać, potrzebować, używać, słuchać, uczyć się</strong> gibi fiiller doğrudan Dopełniacz ister — olumlu olsalar bile.',     examples:[['Szukam klucza.','Anahtarı arıyorum.'],['Potrzebuję pomocy.','Yardıma ihtiyacım var.'],['Słucham muzyki.','Müzik dinliyorum.']]},
+  result_dopel_sah:  {type:'result',case:'DOPEŁNİACZ', accent:'dopel', polish:'Sahiplik / Miktar / Menşe',                  soru:'Kogo? Czego?',suffix:'eril/tarafsız:-u/-a  |  dişil:-y/-i  |  mama→mamy, woda→wody',             why:'İsmin başka bir isme bağlanması (sahiplik), <strong>dużo, mało, trochę, ile</strong> miktar kelimeleri ve bazı edatlar Dopełniacz gerektirir.', examples:[['To jest dom mamy.','Bu annemin evi.'],['Piję dużo wody.','Çok su içiyorum.'],['Szklanka herbaty.','Bir bardak çay.']]},
+  result_dopel_edat: {type:'result',case:'DOPEŁNİACZ', accent:'dopel', polish:'do, od, bez, dla, koło, według',             soru:'Kogo? Czego?',suffix:'eril/tarafsız:-u/-a  |  dişil:-y/-i',                                     why:'<strong>do, od, bez, dla, koło, według</strong> edatları her zaman Dopełniacz ister.',                                                examples:[['Idę do szkoły.','Okula gidiyorum.'],['Herbata bez cukru.','Şekersiz çay.'],['Prezent dla mamy.','Annem için hediye.']]},
+  result_miej:       {type:'result',case:'MİEJSCOWNİK',accent:'miej',  polish:'Yer / Durum Hali — w, na, po, przy, o',     soru:'Gdzie? O czym?',suffix:'eril:-ie/-e  |  dişil:-ie/-y  |  Warszawa→Warszawie, stół→stole',          why:'<strong>w, na, po, przy, o</strong> edatları her zaman Miejscownik ister. <strong>Tek başına kullanılamaz</strong> — mutlaka edat gerektirir.', examples:[['Mieszkam w Warszawie.','Varşova\'da yaşıyorum.'],['Książka leży na stole.','Kitap masada duruyor.'],['Myślę o pracy.','İş hakkında düşünüyorum.']]},
+  result_narze_yuk:  {type:'result',case:'NARZĘDNIK',  accent:'narze', polish:'Yüklem Hali — być / zostać / stać się',      soru:'Kim? Czym?',  suffix:'eril:-em/-iem  |  dişil:-ą  |  çoğul:-ami  |  student→studentem',            why:'<strong>być, zostać, stać się</strong> fiillerinden sonra gelen meslek veya sıfat her zaman Narzędnik alır.',                          examples:[['Jestem inżynierem.','Mühendisim.'],['Zostałem dyrektorem.','Müdür oldum.'],['Ona jest lekarką.','O doktor.']]},
+  result_narze_edat: {type:'result',case:'NARZĘDNIK',  accent:'narze', polish:'Araç / Beraberlik — z, przed, pod, nad, za', soru:'Kim? Czym?',  suffix:'eril:-em/-iem  |  dişil:-ą  |  çoğul:-ami  |  brat→bratem',                 why:'<strong>z/ze, przed, pod, nad, za, między</strong> edatları konum/beraberlik bağlamında Narzędnik ister.',                            examples:[['Idę z bratem.','Kardeşimle gidiyorum.'],['Stoję przed domem.','Evin önünde duruyorum.'],['Piszę długopisem.','Kalemle yazıyorum.']]},
+  result_bier_edat:  {type:'result',case:'BİERNİK',    accent:'bier',  polish:'przez, za (süre), na (hedef/süre)',          soru:'Kogo? Co?',  suffix:'eril canlı:-a  |  eril cansız:-Ø  |  dişil:-ę  |  tarafsız:-Ø',                why:'<strong>przez, za</strong> (süre sonra) ve <strong>na</strong> (belirli bir süre/hedef için) edatları Biernik ister.',               examples:[['Idę przez most.','Köprüden geçiyorum.'],['Jadę na tydzień.','Bir haftalığına gidiyorum.'],['Za godzinę wracam.','Bir saat sonra dönerim.']]},
+  result_celown:     {type:'result',case:'CELOWNİK',   accent:'celown',polish:'Yönelme Hali — Komu? Czemu?',                soru:'Komu? Czemu?',suffix:'eril:-owi  |  dişil:-ie/-y  |  tarafsız:-u  |  mama→mamie',                   why:'<strong>dawać, mówić, pisać, pomagać, podobać się, dziękować</strong> gibi fiillerden sonra gelen dolaylı nesne Celownik alır.',    examples:[['Daję mamie kwiat.','Anneme çiçek veriyorum.'],['Pomagam bratu.','Kardeşime yardım ediyorum.'],['Dziękuję panu.','Sizi teşekkür ederim.']]},
+};
+
+let history=[], current='start';
+const AV={mian:'var(--mian)',bier:'var(--bier)',narze:'var(--narze)',dopel:'var(--dopel)',miej:'var(--miej)',celown:'var(--celown)'};
+const AB={mian:'var(--mian-bg)',bier:'var(--bier-bg)',narze:'var(--narze-bg)',dopel:'var(--dopel-bg)',miej:'var(--miej-bg)',celown:'var(--celown-bg)'};
+const NL={start:'Başlangıç',q_nesne:'Nesne türü',q_fiil:'Fiil',q_edat:'Edat',result_mian:'Mianownik',result_biernik:'Biernik',result_dopel_neg:'Dopełniacz',result_dopel_fiil:'Dopełniacz',result_dopel_sah:'Dopełniacz',result_dopel_edat:'Dopełniacz',result_miej:'Miejscownik',result_narze_yuk:'Narzędnik',result_narze_edat:'Narzędnik',result_bier_edat:'Biernik',result_celown:'Celownik'};
+
+function render(){
+  const node=TREE[current], wrap=document.getElementById('cardWrap');
+  node.type==='question'?renderQ(node,wrap):renderR(node,wrap);
+  updateBC(); updateProg();
+}
+
+function renderQ(n,w){
+  w.innerHTML=`<div class="card"><div class="q-header"><div class="q-step">${n.step}</div><div class="q-text">${n.text}</div>${n.hint?`<div class="q-hint">${n.hint}</div>`:''}</div><div class="q-options">${n.options.map(o=>`<button class="opt-btn" style="--accent-color:${AV[o.accent]}" onclick="choose('${o.next}')"><span class="opt-icon">${o.icon}</span><span class="opt-body"><span class="opt-label">${o.label}</span><span class="opt-sub">${o.sub.replace(/\n/g,'<br>')}</span></span><span class="opt-arrow">›</span></button>`).join('')}</div></div>`;
+}
+
+function renderR(n,w){
+  const c=AV[n.accent], b=AB[n.accent];
+  const exHtml=n.examples.map(([pl,tr])=>`<div class="ex-pair"><div class="ex-box pl"><div class="ex-lang">Polonca</div><div class="ex-text">${pl}</div></div><div class="ex-box tr"><div class="ex-lang">Türkçe</div><div class="ex-text">${tr}</div></div></div>`).join('');
+  const noteHtml=n.note?`<div class="ex-pair"><div class="ex-box note" style="grid-column:1/-1"><div class="ex-lang">Not</div><div class="ex-text">${n.note}</div></div></div>`:'';
+  const nk=current;
+
+  w.innerHTML=`
+  <div class="card" style="border-color:${c}30">
+    <div class="result-top">
+      <div class="result-badge" style="color:${c};border-color:${c};background:${b}">✓ ${n.soru}</div>
+      <div class="result-name" style="color:${c}">${n.case}</div>
+      <div class="result-polish">${n.polish}</div>
+    </div>
+    <div class="result-why" style="border-color:${c};background:${b}">${n.why}</div>
+    <div class="result-examples">${exHtml}${noteHtml}</div>
+    <div class="suffix-row"><span class="suffix-label">Son Ek</span><span style="color:${c};font-family:'JetBrains Mono',monospace;font-size:0.72rem">${n.suffix}</span></div>
+
+    <div class="ai-checker">
+      <div class="ai-checker-head">
+        <span class="ai-badge">✦ AI</span>
+        <div class="ai-head-text">
+          <div class="ai-checker-title">Kendi cümleni yaz, AI kontrol etsin</div>
+          <div class="ai-checker-sub">${n.case} halini kullanarak bir cümle yaz — doğru mu yanlış mı anında görürsün.</div>
+        </div>
+      </div>
+      <div class="ai-input-row">
+        <div class="ai-input-wrap">
+          <div class="ai-input-label">Polonca cümlen veya kelime formu</div>
+          <textarea class="ai-textarea" id="inp_${nk}"
+            placeholder="Örn: Lubię kawy. / Idę do szkołę. / Jestem student."
+            rows="2"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();aiCheck('${nk}','${n.case}')}"></textarea>
+        </div>
+        <button class="ai-submit" id="btn_${nk}" onclick="aiCheck('${nk}','${n.case}')">
+          <span id="bsp_${nk}">Kontrol Et →</span>
+        </button>
+      </div>
+      <div class="ai-result" id="res_${nk}"></div>
+      <div class="ai-try-hint" id="hint_${nk}">↑ Farklı bir cümle deneyebilirsin</div>
+    </div>
+
+    <div class="card-footer">
+      <button class="btn-back" onclick="goBack()">← Geri</button>
+      <button class="btn-restart" onclick="restart()">↩ Baştan</button>
+    </div>
+  </div>`;
+}
+
+// ── AI CHECK ─────────────────────────────────────────────────────────────────
+async function aiCheck(nk, caseName){
+  const inp=document.getElementById(`inp_${nk}`);
+  const btn=document.getElementById(`btn_${nk}`);
+  const bsp=document.getElementById(`bsp_${nk}`);
+  const res=document.getElementById(`res_${nk}`);
+  const hnt=document.getElementById(`hint_${nk}`);
+  const txt=inp.value.trim();
+  if(!txt){inp.focus();inp.style.borderColor='var(--err)';setTimeout(()=>inp.style.borderColor='',1200);return;}
+
+  btn.disabled=true;
+  bsp.innerHTML='<div class="spinner"></div>';
+  res.className='ai-result'; res.innerHTML=''; hnt.className='ai-try-hint';
+
+  const sys=`Sen bir Polonca gramer öğretmenisin. Kullanıcı "${caseName}" halini öğreniyor.
+Kullanıcının yazdığı Polonca cümle veya kelimeyi analiz et.
+YALNIZCA şu JSON formatında yanıt ver, başka hiçbir şey ekleme:
+{"verdict":"correct|incorrect|partial","title":"Kısa Türkçe başlık (max 7 kelime)","explanation":"Türkçe açıklama, 2-3 cümle, hangi hal kullanılmış ve neden doğru/yanlış","correction":"Düzeltilmiş Polonca (hata yoksa null)"}`;
+
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,system:sys,messages:[{role:'user',content:`Analiz et: "${txt}"`}]})
+    });
+    const d=await r.json();
+    const raw=(d.content?.[0]?.text||'').replace(/```json|```/g,'').trim();
+    let p;
+    try{p=JSON.parse(raw);}
+    catch{p={verdict:'info',title:'Yanıt alındı',explanation:raw,correction:null};}
+    showAIResult(res,p);
+    hnt.className='ai-try-hint show';
+  }catch(e){
+    res.className='ai-result info show';
+    res.innerHTML='<div class="ai-verdict"><span class="verdict-icon">⚠️</span><span class="verdict-text">Bağlantı hatası</span></div><div class="ai-explanation">API\'ye ulaşılamadı.</div>';
+  }
+  btn.disabled=false; bsp.innerHTML='Kontrol Et →';
+}
+
+function showAIResult(el,p){
+  const v=p.verdict;
+  const icon=v==='correct'?'✅':v==='incorrect'?'❌':v==='partial'?'⚡':'ℹ️';
+  const cls=v==='correct'?'correct':v==='incorrect'?'incorrect':v==='partial'?'partial':'info';
+  const corr=p.correction?`<div class="ai-correction"><div class="ai-correction-label">Doğru Form</div><div class="ai-correction-text">${p.correction}</div></div>`:'';
+  el.className=`ai-result ${cls} show`;
+  el.innerHTML=`<div class="ai-verdict"><span class="verdict-icon">${icon}</span><span class="verdict-text">${p.title||''}</span></div><div class="ai-explanation">${p.explanation||''}</div>${corr}`;
+}
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+function choose(next){history.push(current);current=next;render();scrollTo({top:0,behavior:'smooth'});}
+function goBack(){if(!history.length)return;current=history.pop();render();}
+function restart(){history=[];current='start';render();scrollTo({top:0,behavior:'smooth'});}
+function goToStep(i){if(i===0){restart();return;}current=history[i-1];history=history.slice(0,i-1);render();}
+
+function updateBC(){
+  const bc=document.getElementById('breadcrumb');
+  const steps=['start',...history,current];
+  bc.innerHTML=steps.map((k,i)=>{
+    const l=NL[k]||k, last=i===steps.length-1;
+    const sep=i>0?'<span class="bc-sep">›</span>':'';
+    return last?`${sep}<span class="bc-item active">${l}</span>`:`${sep}<span class="bc-item" onclick="goToStep(${i})">${l}</span>`;
+  }).join('');
+}
+
+function updateProg(){
+  const pct=TREE[current].type==='result'?100:Math.min((history.length/3)*80,80);
+  document.getElementById('progressBar').style.width=pct+'%';
+}
+
+function toggleRef(){
+  document.getElementById('refToggle').classList.toggle('open');
+  document.getElementById('refBody').classList.toggle('open');
+}
+
+render();
+</script>
+</body>
+</html>
